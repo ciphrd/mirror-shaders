@@ -76,6 +76,8 @@ export default {
 
     uniform sampler2D texture;
     uniform float time;
+    uniform float iResolution;
+    uniform float colorStrength;
 
     varying vec2 vUv;
 
@@ -92,29 +94,38 @@ export default {
     }
 
     void main() {
+      vec2 uvs = vec2(vUv.x, vUv.y/iResolution);
+
       float scale = ((cos(time/15000.0)+1.0)/4.0+0.5)*1.2;
-      vec2 pos = vUv*scale;
+      vec2 pos = uvs*scale;
 
       float rad = length(pos);
-      float angle = atan(pos.y, pos.x) + (1.0-rad)*20.0;
+      float angle = atan(pos.y, pos.x) + length(uvs)*tan(time/20000.0);
 
       float ma = mod(angle, TAU/sections);
       ma = abs(ma - PI/sections);
 
       vec2 p = vec2(cos(ma), sin(ma))*rad +0.5;
 
-      vec4 color = texture2D(texture, mod(p+sin(time/10000.0), 1.0));
+      vec4 color = texture2D(texture, mod(p+sin(time/24000.0), 1.0));
 
       // color effects 
-      float hue = mod(length(vUv)*4.0, 1.0);
+      //float hue = mod(length(uvs)*2.0, 1.0);
       //float rgb = HSVtoRGB(vec3(hue, 1.0, 1.0));
 
-      float grey = 1.0; // (color.r+color.g+color.b)/3.0;
+      float grey = (color.r+color.g+color.b)/3.0;
+      grey = clamp(grey+0.2, 0.0, 1.0);
+      grey = grey*grey;
 
       //float ang = angle + rad*3.0;
       //let nPos = vec2(cos(ang)*rad, sin(ang)*rad);
 
-      gl_FragColor = vec4(grey*color.r, grey*color.g, grey*color.b, 1.0);
+      float hue = mod(length(uvs)*2.0 + cos(time/5000.0), 1.0);
+      vec3 hsv = vec3(hue, 1.0, 1.0);
+      vec3 rgb = HSVtoRGB(hsv);
+      rgb = rgb*colorStrength;
+
+      gl_FragColor = vec4(rgb.r*grey, rgb.g*grey, rgb.b*grey, 1.0);
     }
   `
 }

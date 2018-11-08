@@ -14,6 +14,9 @@ import Shader from "./shaddy";
 import config from "./config";
 
 import * as THREE from "three";
+import clamp from "clamp";
+import { EffectComposer, RenderPass, BloomEffect, EffectPass, RealisticBokehEffect,
+  BrightnessContrastEffect, BlendFunction, PixelationEffect, NoiseEffect } from "postprocessing";
 
 
 
@@ -29,20 +32,66 @@ class Visualizer {
     document.body.appendChild(this.renderer.domElement);
 
     let loader = new THREE.TextureLoader();
-    let text = loader.load("in.jpg");
+    let text = loader.load("in-res.jpg");
 
     this.material = new THREE.ShaderMaterial({
       vertexShader: Shader.vertex,
       fragmentShader: Shader.fragment,
       uniforms: {
         texture: { type: "t", value: text },
-        time: { type: "f", value: 0.0 }
+        time: { type: "f", value: 0.0 },
+        iResolution: { type: "f", value: window.innerWidth/window.innerHeight },
+        colorStrength: { type: "f", value: 0.0 }
       }
     });
 
     this.plane = new THREE.Mesh(new THREE.PlaneGeometry(), this.material);
-
     this.scene.add(this.plane);
+
+    this.timeSpeed = 0;
+
+    /** EFFECT COMPOSER */
+    this.composer = new EffectComposer(this.renderer, { depthTexture: true });
+
+    this.bloomEffect = new BloomEffect();
+    this.brightnessEffect = new BrightnessContrastEffect({
+      blendFunction: BlendFunction.SCREEN
+    });
+
+    this.effectPass = new EffectPass(this.camera, this.bloomEffect, this.brightnessEffect);
+    //this.effectPass2 = new EffectPass(this.camera, this.pixelEffect);
+
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.composer.addPass(this.effectPass);
+
+    this.effectPass.renderToScreen = true;
+  }
+
+  /**
+   *  
+   * @param {number} time 
+   * @param {AudioData} audio 
+   */
+  updatePasses (time, audio) {
+    this.bloomEffect.distinction = 0.05-audio.peak.value*0.05;
+    this.bloomEffect.kernelSize = 3;
+
+    this.brightnessEffect.uniforms.get("contrast").value = 0.8 - audio.energyAverage/50.0;
+  }
+
+  /**
+   *  
+   * @param {number} time 
+   * @param {AudioData} audioData 
+   */
+  updateUniforms (deltaT, time, audioData) {
+    this.timeSpeed+= audioData.energy/20.0*20.0;
+
+    this.material.uniforms.time.value = this.timeSpeed;
+    this.material.uniforms.time.needsUpdate = true;
+
+    this.material.uniforms.colorStrength.value = clamp((15+audioData.energyAverage)/50.0, 0, 1.0);
+    this.material.uniforms.colorStrength.needsUpdate = true;
   }
 
   /**
@@ -53,12 +102,12 @@ class Visualizer {
    * @param {AudioData} audio the audio analysed data, with peak informations
    */
   render (deltaT, time, audio) {
-    this.renderer.render(this.scene, this.camera);
+    console.log(128-audio.energy)
+    this.updatePasses(time, audio);
+    this.updateUniforms(deltaT, time, audio);
 
-    this.material.uniforms.time.value = time;
-    this.material.uniforms.time.needsUpdate = true;
-
-    console.log(this.material);
+    //this.renderer.render(this.scene, this.camera);
+    this.composer.render(deltaT);
   }
 }
 

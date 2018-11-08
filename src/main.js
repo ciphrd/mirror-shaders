@@ -5,6 +5,7 @@ import Creenv from "@creenv/core";
 import HUD from "@creenv/hud";
 import GUI from "@creenv/gui";
 import Stats from "@creenv/stats";
+import Capture from "@creenv/capture";
 
 // config + user controls 
 import config from "./config";
@@ -20,7 +21,7 @@ class MyProject extends Creenv {
     super.init();  
 
     // you can specify a custom framerate (frames/sec) here 
-    super.framerate(60);
+    super.framerate(80);
 
     this.stats = new Stats();
     this.guiControls = new GUI(controls, GUI.POSITION.TOP_RIGHT);
@@ -33,8 +34,15 @@ class MyProject extends Creenv {
     this.visualizer.init();
 
     this.audio = new AudioManager(AudioManager.SOURCE_TYPE.FILE, {
-      filepath: "owl-vision_warhogz.mp3"
-    });
+      filepath: "music.mp3",
+      analyser: {
+        peakDetection: {
+          options: {
+            threshold: 1.1
+          }
+        }
+      }
+    }, true);
 
     return new Promise(resolve => {
       this.audio.init().then(resolve);
@@ -56,4 +64,13 @@ class MyProject extends Creenv {
 }
 
 let project = new MyProject();
-project.bootstrap(); 
+//project.bootstrap(); 
+
+new Capture(project, {
+  framerate: 30,
+  export: {
+    type: "jpeg-sequence",
+    framerate: 30,
+    filename: "sequence.zip"
+  }
+})
