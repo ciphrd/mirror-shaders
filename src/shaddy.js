@@ -96,7 +96,7 @@ export default {
       vec2 pos = vUv*scale;
 
       float rad = length(pos);
-      float angle = atan(pos.y, pos.x);
+      float angle = atan(pos.y, pos.x) + (1.0-rad)*20.0;
 
       float ma = mod(angle, TAU/sections);
       ma = abs(ma - PI/sections);
@@ -110,6 +110,9 @@ export default {
       //float rgb = HSVtoRGB(vec3(hue, 1.0, 1.0));
 
       float grey = 1.0; // (color.r+color.g+color.b)/3.0;
+
+      //float ang = angle + rad*3.0;
+      //let nPos = vec2(cos(ang)*rad, sin(ang)*rad);
 
       gl_FragColor = vec4(grey*color.r, grey*color.g, grey*color.b, 1.0);
     }
