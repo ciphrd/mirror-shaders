@@ -23,10 +23,10 @@ class MyProject extends Creenv {
     // you can specify a custom framerate (frames/sec) here 
     super.framerate(80);
 
-    this.stats = new Stats();
+    //this.stats = new Stats();
     this.guiControls = new GUI(controls, GUI.POSITION.TOP_RIGHT);
     this.hud = new HUD();
-    this.hud.add(this.stats);
+    //this.hud.add(this.stats);
     this.hud.add(this.guiControls);
 
     // we initialize our visualizer
@@ -53,13 +53,13 @@ class MyProject extends Creenv {
    * will be called at each frame 
    */
   render() {
-    this.stats.begin();
+    //this.stats.begin();
 
     let analysed = this.audio.getAnalysedAudioData(this.deltaT, this.elapsedTime);
 
     this.visualizer.render(this.deltaT, this.elapsedTime, analysed);
 
-    this.stats.end();
+    //this.stats.end();
   }
 }
 
@@ -73,4 +73,4 @@ new Capture(project, {
     framerate: 30,
     filename: "sequence.zip"
   }
-})
+});
