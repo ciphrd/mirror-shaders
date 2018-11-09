@@ -45,7 +45,7 @@
     "webpack-dev-server": "^3.1.9"
   },
   "dependencies": {
-    "@creenv/audio": "^0.3.3",
+    "@creenv/audio": "^0.3.4",
     "@creenv/canvas": "^0.1.4",
     "@creenv/capture": "^0.2.0",
     "@creenv/color": "^1.2.0",
