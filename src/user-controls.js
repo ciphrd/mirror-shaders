@@ -17,7 +17,9 @@ let userControls = {
 
   // the controls property is an array of items
   controls: [
-    
+    {
+      property: "backgroundColor"
+    }
   ]
 
 };

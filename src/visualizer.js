@@ -41,7 +41,11 @@ class Visualizer {
         texture: { type: "t", value: text },
         time: { type: "f", value: 0.0 },
         iResolution: { type: "f", value: window.innerWidth/window.innerHeight },
-        colorStrength: { type: "f", value: 0.0 }
+        colorStrength: { type: "f", value: 0.0 },
+        backgroundColor: { type: "vec3", value: config.backgroundColor.convert(THREE.Vector3, x => x/255) },
+        seed: { type: "f", value: Math.random()*1000.0 },
+        color1: { type: "vec3", value: new THREE.Vector3(0.0, 1.0, 0.0) },
+        color2: { type: "vec3", value: new THREE.Vector3(1.0, 0.0, 1.0) },
       }
     });
 
@@ -92,6 +96,8 @@ class Visualizer {
 
     this.material.uniforms.colorStrength.value = clamp((15+audioData.energyAverage)/20.0, 0, 1.0);
     this.material.uniforms.colorStrength.needsUpdate = true;
+
+    this.material.uniforms.backgroundColor.value = config.backgroundColor.convert(THREE.Vector3, x => x/255);
   }
 
   /**

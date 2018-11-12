@@ -78,6 +78,10 @@ export default {
     uniform float time;
     uniform float iResolution;
     uniform float colorStrength;
+    uniform vec3 backgroundColor;
+    uniform float seed;
+    uniform vec3 color1;
+    uniform vec3 color2;
 
     varying vec2 vUv;
 
@@ -88,6 +92,24 @@ export default {
       return vec3(R,G,B);
     }
 
+    vec3 interpolate (vec3 start, vec3 end, float t) {
+      return start + (end-start)*t;
+    }
+
+    /**
+     * t is between [-1;1] 
+     **/
+    vec3 colorFrom2 (vec3 c1, vec3 c2, float t) {
+      float u = abs(t); // distance from middle point, 0
+      return interpolate(c1, c2, u);
+    }
+
+    float spike (float x)	
+    {	
+        if((int)floor(x)%2 == 0) return 1.0 - 2.0 * (x-floor(x)); 
+        else return -1.0 + 2.0 * (x-floor(x));	
+    }
+
     vec3 HSVtoRGB (vec3 HSV) {
       vec3 RGB = HUEtoRGB(HSV.x);
       return ((RGB - 1.0) * HSV.y + 1.0) * HSV.z;
@@ -96,7 +118,7 @@ export default {
     void main() {
       vec2 uvs = vec2(vUv.x, vUv.y/iResolution);
 
-      float scale = ((cos(time/15000.0)+1.0)/4.0+0.5)*1.2;
+      float scale = ((cos(time/(15000.0+seed))+1.0)/4.0+0.5)*1.2;
       vec2 pos = uvs*scale;
 
       float rad = length(pos);
@@ -125,7 +147,12 @@ export default {
       vec3 rgb = HSVtoRGB(hsv);
       rgb = rgb*colorStrength;
 
-      gl_FragColor = vec4(rgb.r*grey, rgb.g*grey, rgb.b*grey, 1.0);
+      vec3 foreground = colorFrom2(color1, color2, cos(time/1000.0));
+
+      //vec3 finalColor = backgroundColor + rgb*grey;
+      //vec3 finalColor = interpolate(backgroundColor, foreground, grey);
+
+      gl_FragColor = vec4(foreground*grey, 1.0);
     }
   `
 }
