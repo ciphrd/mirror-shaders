@@ -16,6 +16,20 @@ import AudioManager from "@creenv/audio/manager";
 import Visualizer from "./visualizer";
 
 class MyProject extends Creenv {
+  constructor () {
+    super();
+    this.audio = new AudioManager(AudioManager.SOURCE_TYPE.FILE, {
+      filepath: "bbx.wav",
+      analyser: {
+        peakDetection: {
+          options: {
+            threshold: 1.4
+          }
+        }
+      }
+    }, true);
+  }
+
   init() {
     // REQUIRED - calls the parent method 
     super.init();  
@@ -32,17 +46,6 @@ class MyProject extends Creenv {
     // we initialize our visualizer
     this.visualizer = new Visualizer();
     this.visualizer.init();
-
-    this.audio = new AudioManager(AudioManager.SOURCE_TYPE.FILE, {
-      filepath: "music.mp3",
-      analyser: {
-        peakDetection: {
-          options: {
-            threshold: 1.1
-          }
-        }
-      }
-    }, true);
 
     return new Promise(resolve => {
       this.audio.init().then(resolve);
@@ -72,5 +75,8 @@ new Capture(project, {
     type: "jpeg-sequence",
     framerate: 30,
     filename: "sequence.zip"
+  },
+  audio: {
+    manager: project.audio
   }
 });

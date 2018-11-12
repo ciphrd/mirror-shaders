@@ -73,10 +73,10 @@ class Visualizer {
    * @param {AudioData} audio 
    */
   updatePasses (time, audio) {
-    this.bloomEffect.distinction = 0.05-audio.peak.value*0.05;
+    this.bloomEffect.distinction = 0.05-audio.peak.value*0.1;
     this.bloomEffect.kernelSize = 3;
 
-    this.brightnessEffect.uniforms.get("contrast").value = 0.8 - audio.energyAverage/50.0;
+    this.brightnessEffect.uniforms.get("contrast").value = 0.8 - audio.energyAverage/20.0;
   }
 
   /**
@@ -85,12 +85,12 @@ class Visualizer {
    * @param {AudioData} audioData 
    */
   updateUniforms (deltaT, time, audioData) {
-    this.timeSpeed+= audioData.energy/20.0*20.0;
+    this.timeSpeed+= 10+audioData.energy/2.0*20.0;
 
     this.material.uniforms.time.value = this.timeSpeed;
     this.material.uniforms.time.needsUpdate = true;
 
-    this.material.uniforms.colorStrength.value = clamp((15+audioData.energyAverage)/50.0, 0, 1.0);
+    this.material.uniforms.colorStrength.value = clamp((15+audioData.energyAverage)/20.0, 0, 1.0);
     this.material.uniforms.colorStrength.needsUpdate = true;
   }
 
@@ -102,7 +102,6 @@ class Visualizer {
    * @param {AudioData} audio the audio analysed data, with peak informations
    */
   render (deltaT, time, audio) {
-    console.log(128-audio.energy)
     this.updatePasses(time, audio);
     this.updateUniforms(deltaT, time, audio);
 
