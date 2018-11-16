@@ -76,14 +76,22 @@ export default {
 
     uniform sampler2D texture;
     uniform float time;
+    uniform float realTime;
     uniform float iResolution;
     uniform float colorStrength;
     uniform vec3 backgroundColor;
     uniform float seed;
     uniform vec3 color1;
     uniform vec3 color2;
+    uniform float peakValue;
+    uniform int mode;
 
     varying vec2 vUv;
+
+    /**
+     * Randomness is also created by the difference between time and real time. Time is influenced by the audio, therefore its 
+     * curve over time is unique for each audio piece provided as an input  
+     **/
 
     vec3 HUEtoRGB (float H) {
       float R = abs(H * 6.0 - 3.0) - 1.;
@@ -104,10 +112,24 @@ export default {
       return interpolate(c1, c2, u);
     }
 
-    float spike (float x)	
-    {	
-        if((int)floor(x)%2 == 0) return 1.0 - 2.0 * (x-floor(x)); 
-        else return -1.0 + 2.0 * (x-floor(x));	
+    float spike (float x)	{	
+      float f = floor(x);
+      if (mod(f, 2.0) == 0.0) return 1.0 - 2.0 * (x-f); 
+      else return -1.0 + 2.0 * (x-f);	
+    }
+
+    vec3 clampColor (vec3 colorIn) {
+      return vec3(clamp(colorIn.r, 0.0, 1.0), clamp(colorIn.g, 0.0, 1.0), clamp(colorIn.b, 0.0, 1.0));
+    }
+
+    vec3 invert (vec3 colorIn) {
+      return vec3(1.0,1.0,1.0)-clampColor(colorIn);
+    }
+
+    float rand (const in vec2 uv) {
+      const highp float a = 12.9898, b = 78.233, c = 43758.5453;
+      highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
+      return fract(sin(sn) * c);
     }
 
     vec3 HSVtoRGB (vec3 HSV) {
@@ -118,9 +140,11 @@ export default {
     void main() {
       vec2 uvs = vec2(vUv.x, vUv.y/iResolution);
 
-      float scale = ((cos(time/(15000.0+seed))+1.0)/4.0+0.5)*1.2;
+      // scale to add some randomness to the visuals 
+      float scale = ((cos(realTime/(15000.0+seed))+1.0)/4.0+0.5)*1.2;
       vec2 pos = uvs*scale;
 
+      // kaleidoscope 
       float rad = length(pos);
       float angle = atan(pos.y, pos.x) + length(uvs)*tan(time/20000.0);
 
@@ -142,17 +166,31 @@ export default {
       //float ang = angle + rad*3.0;
       //let nPos = vec2(cos(ang)*rad, sin(ang)*rad);
 
-      float hue = mod(length(uvs)*2.0 + cos(time/5000.0), 1.0);
+      float hue = mod(length(uvs)*2.0 + spike(time/5000.0), 1.0);
       vec3 hsv = vec3(hue, 1.0, 1.0);
       vec3 rgb = HSVtoRGB(hsv);
       rgb = rgb*colorStrength;
 
-      vec3 foreground = colorFrom2(color1, color2, cos(time/1000.0));
+      vec3 foreground = colorFrom2(color1, color2, spike(realTime/6000.0 + rad));
 
       //vec3 finalColor = backgroundColor + rgb*grey;
       //vec3 finalColor = interpolate(backgroundColor, foreground, grey);
 
-      gl_FragColor = vec4(foreground*grey, 1.0);
+      if (mode == 1) {
+
+        grey = grey*1.2;
+      } else {
+        grey = grey*1.0+peakValue*0.5;
+      }
+
+      vec3 fragColor = backgroundColor + foreground*(grey);
+
+      // noise is being added to the whole comp 
+      float nse = rand(vUv+cos(realTime)*15000.0);
+
+      fragColor+= nse*(0.1+0.15*peakValue);
+
+      gl_FragColor = vec4(fragColor, 1.0);
     }
   `
 }

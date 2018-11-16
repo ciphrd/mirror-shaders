@@ -15,6 +15,9 @@ import AudioManager from "@creenv/audio/manager";
 
 import Visualizer from "./visualizer";
 
+
+const CAPTURE = false;
+
 class MyProject extends Creenv {
   constructor () {
     super();
@@ -27,7 +30,7 @@ class MyProject extends Creenv {
           }
         }
       }
-    }, true);
+    }, CAPTURE);
   }
 
   init() {
@@ -67,16 +70,18 @@ class MyProject extends Creenv {
 }
 
 let project = new MyProject();
-//project.bootstrap(); 
+if (!CAPTURE) project.bootstrap(); 
 
-new Capture(project, {
-  framerate: 30,
-  export: {
-    type: "jpeg-sequence",
+if (CAPTURE) {
+  new Capture(project, {
     framerate: 30,
-    filename: "sequence.zip"
-  },
-  audio: {
-    manager: project.audio
-  }
-});
+    export: {
+      type: "jpeg-sequence",
+      framerate: 30,
+      filename: "sequence.zip"
+    },
+    audio: {
+      manager: project.audio
+    }
+  });
+}

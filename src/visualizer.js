@@ -40,12 +40,15 @@ class Visualizer {
       uniforms: {
         texture: { type: "t", value: text },
         time: { type: "f", value: 0.0 },
+        realTime: { type: "f", value: 0.0 },
         iResolution: { type: "f", value: window.innerWidth/window.innerHeight },
         colorStrength: { type: "f", value: 0.0 },
         backgroundColor: { type: "vec3", value: config.backgroundColor.convert(THREE.Vector3, x => x/255) },
         seed: { type: "f", value: Math.random()*1000.0 },
         color1: { type: "vec3", value: new THREE.Vector3(0.0, 1.0, 0.0) },
         color2: { type: "vec3", value: new THREE.Vector3(1.0, 0.0, 1.0) },
+        peakValue: { type: "f", value: 0.0 },
+        mode: { type: "i", value: 1 }
       }
     });
 
@@ -69,6 +72,17 @@ class Visualizer {
     this.composer.addPass(this.effectPass);
 
     this.effectPass.renderToScreen = true;
+
+    this.listeners();
+  }
+
+  listeners () {
+    document.addEventListener("keypress", (event) => {
+      if (event.keyCode === 32) {
+        this.material.uniforms.mode.value = this.material.uniforms.mode.value ? 0 : 1;
+        this.material.uniforms.mode.needsUpdate = true;
+      }
+    });
   }
 
   /**
@@ -93,6 +107,12 @@ class Visualizer {
 
     this.material.uniforms.time.value = this.timeSpeed;
     this.material.uniforms.time.needsUpdate = true;
+
+    this.material.uniforms.peakValue.value = audioData.peak.value;
+    this.material.uniforms.peakValue.needsUpdate = true;
+
+    this.material.uniforms.realTime.value = time;
+    this.material.uniforms.realTime.needsUpdate = true;
 
     this.material.uniforms.colorStrength.value = clamp((15+audioData.energyAverage)/20.0, 0, 1.0);
     this.material.uniforms.colorStrength.needsUpdate = true;
